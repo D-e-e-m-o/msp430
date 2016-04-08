@@ -1,4 +1,7 @@
-#include 'keyboard.h'
+#include "msp430f5438.h"
+#include "keyboard.h"
+#include "lcd12864.h"
+#include "string.h"
 /*
 unsigned char mKeyValueIndex[] = {0xFF, 0x31, 0x32, 0x33, 'e', // 1 2 3 4
                                      0x34,0x35, 0x36, 'e', // 5 6 7 8
@@ -6,21 +9,16 @@ unsigned char mKeyValueIndex[] = {0xFF, 0x31, 0x32, 0x33, 'e', // 1 2 3 4
                                      '.', 0x30, 'B', 0x46,// C D E F
                                     };
 */
-int mKeyValueIndex[] = {11,1,2,3,11,4,5,6,11,7,8,9,11,12,0,13,14};
+int mKeyValueIndex[] = {11,1,2,3,17,4,5,6,16,7,8,9,15,12,0,13,14};
 int KeyValue = 11;
-unsigned char KeyIndex = 0x00;
-int w=0;
-int x=1;
-
-long Price = 0;
-long zhengshu =1;
-long xiaoshu = 0;
-double Xiaoshu = 0;
-double Price_F = 0;
-unsigned char m_nTestStatus = 0xFF;
+uchar KeyIndex = 0x00;
+long passwdE=0;
+uint D=0;
+uchar m_nTestStatus = 0xFF;
+uchar* xxx="¡ñ¡ñ¡ñ¡ñ¡ñ¡ñ";
 
 // ï¿½ï¿½ï¿½Ì¶Ë¿Ú³ï¿½Ê¼ï¿½ï¿½
-void Set_Price(void);
+
 void keyb_init()
 {
     P2DIR = 0x0F;            // ï¿½ï¿½ï¿½Ì¶Ë¿ï¿½ï¿½ï¿½ï¿½Ã£ï¿½P2.0-3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½P2.4-7 ï¿½ï¿½ï¿½ï¿½
@@ -97,32 +95,15 @@ __interrupt void Port_1(void)
 {
     if( P1IFG&BIT2 ){
           P1IE = 0;
-          //lcm_write_str(RowStart[0],"ï¿½ï¿½ï¿½Û£ï¿½",6);
-          Clean( RowStart[1] + 3 );
-          //Clean( RowStart[2] + 6 );
+          lcm_write_str(RowStart[1],"ÇëÊäÈëÃÜÂë",10);
           _EINT();
           P2IE  = 0xF0;
-          Price = 0;
-          Price_F = 0 ;
-          Xiaoshu = 0 ;
-          Set_Price();
           P1OUT &= ~BIT2;
           P1IFG &= ~BIT2;
           P1IE |= BIT2;
     }
-    if( P1IFG&BIT0 ){
-          qupi();
-    }
 }
 
-void Set_Price(void)
-{
-
-  for(;KeyValue!=14;)
-  {
-  }
-
-}
 #pragma vector=PORT2_VECTOR
 __interrupt void Port_2(void)
 {
@@ -140,7 +121,13 @@ __interrupt void Port_2(void)
       KeyIndex = keyb_scan();
       KeyValue = mKeyValueIndex[KeyIndex];    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½
       m_nTestStatus = KeyValue;
-      if(KeyValue==12)
+      if( ( D < 6 ) && ( ++D ) )
+      {
+        lcm_write_str(RowStart[2],xxx,2*D);
+        passwdE=passwdE*10+KeyValue;
+      lcm_write_long(RowStart[3],passwdE);
+      }
+    /*  if(KeyValue==17)
       {
       zhengshu=0;
 
@@ -185,9 +172,12 @@ __interrupt void Port_2(void)
       }
 
     }
-    }
-
+    }*/
+  
+  }
+  }
   KeyValue = 11 ;
+
   P2DIR = 0x0F;
   P2REN = 0xF0;
   P2OUT = 0xF0;

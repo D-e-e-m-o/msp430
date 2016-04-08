@@ -1,5 +1,7 @@
 //LCM显示处理程序
-#include 'lcd12864.h'
+#include "msp430f5438.h"
+#include "lcd12864.h"
+uchar RowStart[]={0x80,0x90,0x88,0x98};
 // 液晶屏初始化
 extern void lcm_init(void)
 {
@@ -164,7 +166,7 @@ extern void lcm_write_double(uchar row,double num){
 extern void lcm_write_long(uchar row,long num){
     uchar k[] = {0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39} ;
     long tmp = num ;
-    uchar queue_tmp[2][10] ;
+    uchar queue_tmp[2][16] ;
     int i = 0 ;
     uchar len = 0 ;
     while( tmp ){
