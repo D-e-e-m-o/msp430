@@ -1,5 +1,11 @@
-#ifndef	__rc522_h__
-#define __rc522_h__
+#ifndef	MSP430_RC522_H_
+#define MSP430_RC522_H_
+
+sbit  spi_cs=P2^7;
+sbit  spi_ck=P2^6;
+sbit  spi_mosi=P2^5;
+sbit  spi_miso=P2^4;
+sbit  spi_rst=P2^3;
 
 /////////////////////////////////////////////////////////////////////
 //MF522命令字
@@ -23,8 +29,6 @@
 #define PICC_AUTHENT1B        0x61               //验证B密钥
 #define PICC_READ             0x30               //读块
 #define PICC_WRITE            0xA0               //写块
-#define PICC_DECREMENT        0xC0               //扣款
-#define PICC_INCREMENT        0xC1               //充值
 #define PICC_RESTORE          0xC2               //调块数据到缓冲区
 #define PICC_TRANSFER         0xB0               //保存缓冲区中数据
 #define PICC_HALT             0x50               //休眠
@@ -39,15 +43,15 @@
 //MF522寄存器定义
 /////////////////////////////////////////////////////////////////////
 // PAGE 0
-#define     RFU00                 0x00    
-#define     CommandReg            0x01    
-#define     ComIEnReg             0x02    
-#define     DivlEnReg             0x03    
-#define     ComIrqReg             0x04    
+#define     RFU00                 0x00
+#define     CommandReg            0x01
+#define     ComIEnReg             0x02
+#define     DivlEnReg             0x03
+#define     ComIrqReg             0x04
 #define     DivIrqReg             0x05
-#define     ErrorReg              0x06    
-#define     Status1Reg            0x07    
-#define     Status2Reg            0x08    
+#define     ErrorReg              0x06
+#define     Status1Reg            0x07
+#define     Status2Reg            0x08
 #define     FIFODataReg           0x09
 #define     FIFOLevelReg          0x0A
 #define     WaterLevelReg         0x0B
@@ -55,7 +59,7 @@
 #define     BitFramingReg         0x0D
 #define     CollReg               0x0E
 #define     RFU0F                 0x0F
-// PAGE 1     
+// PAGE 1
 #define     RFU10                 0x10
 #define     ModeReg               0x11
 #define     TxModeReg             0x12
@@ -72,8 +76,8 @@
 #define     RFU1D                 0x1D
 #define     RFU1E                 0x1E
 #define     SerialSpeedReg        0x1F
-// PAGE 2    
-#define     RFU20                 0x20  
+// PAGE 2
+#define     RFU20                 0x20
 #define     CRCResultRegM         0x21
 #define     CRCResultRegL         0x22
 #define     RFU23                 0x23
@@ -89,7 +93,7 @@
 #define     TReloadRegL           0x2D
 #define     TCounterValueRegH     0x2E
 #define     TCounterValueRegL     0x2F
-// PAGE 3      
+// PAGE 3
 #define     RFU30                 0x30
 #define     TestSel1Reg           0x31
 #define     TestSel2Reg           0x32
@@ -99,12 +103,12 @@
 #define     AutoTestReg           0x36
 #define     VersionReg            0x37
 #define     AnalogTestReg         0x38
-#define     TestDAC1Reg           0x39  
-#define     TestDAC2Reg           0x3A   
-#define     TestADCReg            0x3B   
-#define     RFU3C                 0x3C   
-#define     RFU3D                 0x3D   
-#define     RFU3E                 0x3E   
+#define     TestDAC1Reg           0x39
+#define     TestDAC2Reg           0x3A
+#define     TestADCReg            0x3B
+#define     RFU3C                 0x3C
+#define     RFU3D                 0x3D
+#define     RFU3E                 0x3E
 #define     RFU3F		  		  0x3F
 
 /////////////////////////////////////////////////////////////////////
@@ -113,14 +117,6 @@
 #define 	MI_OK                 0
 #define 	MI_NOTAGERR           (-1)
 #define 	MI_ERR                (-2)
-
-
-sbit  spi_cs=P2^7;
-sbit  spi_ck=P2^6;
-sbit  spi_mosi=P2^5;
-sbit  spi_miso=P2^4;
-sbit  spi_rst=P2^3;
-
 
 #define SET_SPI_CS  spi_cs=1
 #define CLR_SPI_CS  spi_cs=0
@@ -136,17 +132,17 @@ sbit  spi_rst=P2^3;
 #define SET_RC522RST  spi_rst=1
 #define CLR_RC522RST  spi_rst=0
 
-extern char PcdReset(void);
-extern char PcdRequest(unsigned char req_code,unsigned char *pTagType);
-extern void PcdAntennaOn(void);
-extern void PcdAntennaOff(void);
-extern char M500PcdConfigISOType(unsigned char type);
-extern char PcdAnticoll(unsigned char *pSnr);
-extern char PcdSelect(unsigned char *pSnr);
-extern char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);
-extern char PcdWrite(unsigned char addr,unsigned char *pData);
-extern char PcdRead(unsigned char addr,unsigned char *pData);
-extern char PcdHalt(void);
-extern void init_rc522(void);
+char PcdReset(void);
+char PcdRequest(unsigned char req_code,unsigned char *pTagType);
+void PcdAntennaOn(void);
+void PcdAntennaOff(void);
+char M500PcdConfigISOType(unsigned char type);
+char PcdAnticoll(unsigned char *pSnr);
+char PcdSelect(unsigned char *pSnr);
+char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);
+char PcdWrite(unsigned char addr,unsigned char *pData);
+char PcdRead(unsigned char addr,unsigned char *pData);
+char PcdHalt(void);
+void init_rc522(void);
 
 #endif
