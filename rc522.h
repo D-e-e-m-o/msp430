@@ -1,11 +1,6 @@
 #ifndef	MSP430_RC522_H_
 #define MSP430_RC522_H_
 
-sbit  spi_cs=P2^7;
-sbit  spi_ck=P2^6;
-sbit  spi_mosi=P2^5;
-sbit  spi_miso=P2^4;
-sbit  spi_rst=P2^3;
 
 /////////////////////////////////////////////////////////////////////
 //MF522命令字
@@ -114,23 +109,31 @@ sbit  spi_rst=P2^3;
 /////////////////////////////////////////////////////////////////////
 //和MF522通讯时返回的错误代码
 /////////////////////////////////////////////////////////////////////
-#define 	MI_OK                 0
-#define 	MI_NOTAGERR           (-1)
-#define 	MI_ERR                (-2)
+#define 	MI_OK                 0x00
+#define 	MI_NOTAGERR           0x01
+#define 	MI_ERR                0x02
 
-#define SET_SPI_CS  spi_cs=1
-#define CLR_SPI_CS  spi_cs=0
+/*
+sbit  spi_cs=P8^4;
+sbit  spi_ck=P8^3;
+sbit  spi_mosi=P8^2;
+sbit  spi_miso=P8^1;
+sbit  spi_rst=P8^0;
+*/
 
-#define SET_SPI_CK  spi_ck=1
-#define CLR_SPI_CK  spi_ck=0
+#define SET_SPI_CS  P8OUT|=0x10
+#define CLR_SPI_CS  P8OUT&=(~0x10)
 
-#define SET_SPI_MOSI  spi_mosi=1
-#define CLR_SPI_MOSI  spi_mosi=0
+#define SET_SPI_CK  P8OUT|=0x08
+#define CLR_SPI_CK  P8OUT&=(~0x08)
 
-#define STU_SPI_MISO  spi_miso
+#define SET_SPI_MOSI  P8OUT|=0x04
+#define CLR_SPI_MOSI  P8OUT&=(~0x04)
 
-#define SET_RC522RST  spi_rst=1
-#define CLR_RC522RST  spi_rst=0
+#define STU_SPI_MISO  P8IN&0x02
+
+#define SET_RC522RST  P8OUT|=0x01
+#define CLR_RC522RST  P8OUT&=(~0x01)
 
 char PcdReset(void);
 char PcdRequest(unsigned char req_code,unsigned char *pTagType);

@@ -1,11 +1,13 @@
-#include "msp530f5438.h"
+#include "msp430f5438.h"
 #include "rc522.h"
 #include "delay.h"
+#include <string.h>
 
 void delay_ns(unsigned int ns)
 {
-	unsigned int i;
-	for(i=0;i<ns;i++);
+	uint i, j;
+	for(i=0;i<ns;i++)
+          for(j = 0; j < 3; j++ );
 }
 
 //------------------------------------------
@@ -61,7 +63,7 @@ void SPIWriteByte(unsigned char SPIData)
 /////////////////////////////////////////////////////////////////////
 unsigned char ReadRawRC(unsigned char Address)
 {
-	unsigned char ucAddr;
+    unsigned char ucAddr;
     unsigned char ucResult=0;
 	CLR_SPI_CS;
     ucAddr = ((Address<<1)&0x7E)|0x80;
@@ -81,7 +83,7 @@ void WriteRawRC(unsigned char Address, unsigned char value)
     unsigned char ucAddr;
 
 	CLR_SPI_CS;
-    ucAddr = ((Address<<1)&0x7E);
+        ucAddr = ((Address<<1)&0x7E);
 	SPIWriteByte(ucAddr);
 	SPIWriteByte(value);
 	SET_SPI_CS;
@@ -158,15 +160,15 @@ char PcdComMF522(unsigned char Command,
     switch (Command)
     {
         case PCD_AUTHENT:
-			irqEn   = 0x12;
-			waitFor = 0x10;
-			break;
-		case PCD_TRANSCEIVE:
-			irqEn   = 0x77;
-			waitFor = 0x30;
-			break;
-		default:
-			break;
+		irqEn   = 0x12;
+		waitFor = 0x10;
+		break;
+	case PCD_TRANSCEIVE:
+		irqEn   = 0x77;
+		waitFor = 0x30;
+		break;
+	default:
+		break;
     }
 
     WriteRawRC(ComIEnReg,irqEn|0x80);
@@ -471,7 +473,7 @@ char PcdHalt(void)
 
     status = PcdComMF522(PCD_TRANSCEIVE,ucComMF522Buf,4,ucComMF522Buf,&unLen);
 
-    return MI_OK;
+    return status;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -480,22 +482,20 @@ char PcdHalt(void)
 /////////////////////////////////////////////////////////////////////
 char PcdReset(void)
 {
-	SET_RC522RST;
+    SET_RC522RST;
     delay_ns(10);
-	CLR_RC522RST;
+    CLR_RC522RST;
     delay_ns(10);
-	SET_RC522RST;
+    SET_RC522RST;
     delay_ns(10);
     WriteRawRC(CommandReg,PCD_RESETPHASE);
     delay_ns(10);
-
     WriteRawRC(ModeReg,0x3D);            //和Mifare卡通讯，CRC初始值0x6363
     WriteRawRC(TReloadRegL,30);
     WriteRawRC(TReloadRegH,0);
     WriteRawRC(TModeReg,0x8D);
     WriteRawRC(TPrescalerReg,0x3E);
-
-	WriteRawRC(TxAutoReg,0x40);//必须要
+    WriteRawRC(TxAutoReg,0x40);//必须要
 
     return MI_OK;
 }
@@ -506,16 +506,16 @@ char M500PcdConfigISOType(unsigned char type)
 {
    if (type == 'A')                     //ISO14443_A
    {
-       ClearBitMask(Status2Reg,0x08);
-       WriteRawRC(ModeReg,0x3D);//3F
-       WriteRawRC(RxSelReg,0x86);//84
-       WriteRawRC(RFCfgReg,0x7F);   //4F
-   	   WriteRawRC(TReloadRegL,30);//tmoLength);// TReloadVal = 'h6a =tmoLength(dec)
-	   WriteRawRC(TReloadRegH,0);
-       WriteRawRC(TModeReg,0x8D);
-	   WriteRawRC(TPrescalerReg,0x3E);
-	   delay_ns(1000);
-       PcdAntennaOn();
+      ClearBitMask(Status2Reg,0x08);
+      WriteRawRC(ModeReg,0x3D);//3F
+      WriteRawRC(RxSelReg,0x86);//84
+      WriteRawRC(RFCfgReg,0x7F);   //4F
+      WriteRawRC(TReloadRegL,0x30);//tmoLength);// TReloadVal = 'h6a =tmoLength(dec)?????
+      WriteRawRC(TReloadRegH,0);
+      WriteRawRC(TModeReg,0x8D);
+      WriteRawRC(TPrescalerReg,0x3E);
+      delay_ms(2);
+      PcdAntennaOn();
    }
    else{ return -1; }
 
@@ -547,6 +547,8 @@ void PcdAntennaOff(void)
 
 void init_rc522(void)
 {
+  P8DIR |= 0xff;
+  P8REN &= 0x00;
   PcdReset();
   PcdAntennaOff();
   delay_ms(2);
