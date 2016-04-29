@@ -119,8 +119,8 @@ extern void ClearScreen(){
 }
 
 extern void Clean( uchar _Start ){
-    uchar* blank = "          " ;
-    lcm_write_str( _Start , blank , 10 );
+    uchar* blank = "                " ;
+    lcm_write_str( _Start , blank , 16 );
 }
 
 extern void lcm_write_str(uchar _StartPosition,uchar* _String,uchar _len){

@@ -1,8 +1,35 @@
 #include "msp430f5438.h"
 #include "rc522.h"
 #include "delay.h"
+#include "lcd12864.h"
+#include "keyboard.h"
 #include <string.h>
 
+extern uchar RowStart[];
+uchar rcRoot[4] = {0xff,0xee,0xcc,0xaa};
+
+void test()
+{
+    uchar rcStatus = 0;
+    uchar passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    uchar tagType[2], rcSnr[4], rcStr[4];
+    init_rc522();
+    while( ( rcStatus = PcdRequest(PICC_REQALL, tagType) ) != MI_OK );
+    while( ( rcStatus = PcdAnticoll(rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdSelect(rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdAuthState(PICC_AUTHENT1A, 1, passWd, rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdRead(1, rcStr) ) != MI_OK );
+    if((rcRoot[0]==rcStr[0])&&(rcRoot[1]==rcStr[1])&&(rcRoot[2]==rcStr[2])&&(rcRoot[3]==rcStr[3]))
+    {
+      Clean(RowStart[1]);
+      lcm_write_str(RowStart[3],"身份正确welcome",16);
+      keyb_init();
+      return;
+    }
+    else
+      lcm_write_str(RowStart[3],"身份错误重新输入",16);
+    
+}
 void delay_ns(unsigned int ns)
 {
 	uint i, j;
@@ -23,7 +50,7 @@ unsigned char SPIReadByte(void)
 	{
 		SPIData <<=1;                                               // Rotate the data
 		CLR_SPI_CK; //nop();//nop();                                         // Raise the clock to clock the data out of the MAX7456
-		if(STU_SPI_MISO)
+		if(P8IN & 0x02 == 0x02)
 		{
  			SPIData|=0x01;
 		}
@@ -548,10 +575,20 @@ void PcdAntennaOff(void)
 void init_rc522(void)
 {
   P8DIR |= 0xff;
-  P8REN &= 0x00;
+  P8OUT |= 0xff;
   PcdReset();
   PcdAntennaOff();
-  delay_ms(2);
-  //PcdAntennaOn();
+  delay_ms(20);
+  PcdAntennaOn();
+  delay_ms(20);
   M500PcdConfigISOType( 'A' );
+    uchar rcStatus = 0;
+    uchar passWd[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    uchar tagType[2], rcSnr[4];
+    init_rc522();
+    while( ( rcStatus = PcdRequest(PICC_REQALL, tagType) ) != MI_OK );
+    while( ( rcStatus = PcdAnticoll(rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdSelect(rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdAuthState(PICC_AUTHENT1A, 1, passWd, rcSnr) ) != MI_OK );
+    while( ( rcStatus = PcdWrite(1, rcRoot) ) != MI_OK );
 }

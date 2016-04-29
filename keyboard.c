@@ -2,6 +2,7 @@
 #include "keyboard.h"
 #include "lcd12864.h"
 #include "string.h"
+#include "rc522.h"
 /*
 unsigned char mKeyValueIndex[] = {0xFF, 0x31, 0x32, 0x33, 'e', // 1 2 3 4
                                      0x34,0x35, 0x36, 'e', // 5 6 7 8
@@ -13,7 +14,8 @@ int mKeyValueIndex[] = {11,1,2,3,17,4,5,6,16,7,8,9,15,12,0,13,14};
 int KeyValue = 11;
 uchar KeyIndex = 0x00;
 long passwdE=0;
-uint D=0;
+long password = 888888;
+int D=0;
 uchar m_nTestStatus = 0xFF;
 uchar* xxx="¡ñ¡ñ¡ñ¡ñ¡ñ¡ñ";
 
@@ -21,12 +23,14 @@ uchar* xxx="¡ñ¡ñ¡ñ¡ñ¡ñ¡ñ";
 
 void keyb_init()
 {
+    P1IFG = 0;
+    P2IFG = 0;
     P2DIR = 0x0F;            // ï¿½ï¿½ï¿½Ì¶Ë¿ï¿½ï¿½ï¿½ï¿½Ã£ï¿½P2.0-3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½P2.4-7 ï¿½ï¿½ï¿½ï¿½
     P2REN = 0xF0;
     P2OUT = 0xF0;                               //
-    P2IES = 0xF0;                          // ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+    P2IES = 0xf0;                          // ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
     P2IE  = 0x00;                         // ï¿½ï¿½ï¿½ï¿½ï¿½Â½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½P2 ï¿½Ð¶ï¿½
-    P1IE |= BIT2;
+    P1IE |= BIT0 + BIT2 + BIT4;
 }
 
 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4*4
@@ -93,14 +97,30 @@ unsigned char keyb_scan(void)
 
 __interrupt void Port_1(void)
 {
+    if( P1IFG&BIT0 ){
+      Clean(RowStart[1]);
+      Clean(RowStart[2]);
+      Clean(RowStart[3]);
+      lcm_write_str(RowStart[0],"Ë¢¿¨°´Ò»ÃÜÂë°´¶þ",16);
+    }
     if( P1IFG&BIT2 ){
+      Clean(RowStart[1]);
+      Clean(RowStart[2]);
+      Clean(RowStart[3]);
+      lcm_write_str(RowStart[1],"Ôª¼þËð»µÔÝ²»ÄÜÓÃ",16);
+      //test();
+      keyb_init();
+    }
+    if( P1IFG&BIT4 ){
           P1IE = 0;
+          Clean(RowStart[1]);
           lcm_write_str(RowStart[1],"ÇëÊäÈëÃÜÂë",10);
-          _EINT();
+          Clean(RowStart[2]);
+          Clean(RowStart[3]);
           P2IE  = 0xF0;
-          P1OUT &= ~BIT2;
-          P1IFG &= ~BIT2;
-          P1IE |= BIT2;
+          //P1OUT &= ~BIT2;
+          //P1IFG &= ~BIT2;
+          //P1IE |= BIT2;
     }
 }
 
@@ -119,64 +139,55 @@ __interrupt void Port_2(void)
     if((P2IN&0xF0) == mTmp)
     {
       KeyIndex = keyb_scan();
-      KeyValue = mKeyValueIndex[KeyIndex];    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½
-      m_nTestStatus = KeyValue;
-      if( ( D < 6 ) && ( ++D ) )
+      KeyValue = mKeyValueIndex[KeyIndex];
+      if( KeyValue == 16 ){             //È·¶¨
+        D = 0;
+        Clean(RowStart[2]);
+        Clean(RowStart[3]);
+        KeyValue = 0;
+        if(passwdE == password)
+        {
+          Clean(RowStart[1]);
+          lcm_write_str(RowStart[3],"ÃÜÂëÕýÈ·welcome",16);
+          keyb_init();
+          return;
+        }
+        else
+        {
+          lcm_write_str(RowStart[3],"ÃÜÂë´íÎóÖØÐÂÊäÈë",16);
+        }
+        passwdE = 0;
+      }
+      else
+      if( KeyValue == 15 )
       {
-        lcm_write_str(RowStart[2],xxx,2*D);
-        passwdE=passwdE*10+KeyValue;
-      lcm_write_long(RowStart[3],passwdE);
+          Clean(RowStart[1]);
+          Clean(RowStart[2]);
+          Clean(RowStart[3]);
+          lcm_write_str(RowStart[3],"ÄúÒÑÍË³öÃÜÂëÄ£Ê½",16);
+          keyb_init();
+          return;
       }
-    /*  if(KeyValue==17)
+      else
       {
-      zhengshu=0;
-
+        if( KeyValue == 17 ){                   //Çå³ýÊäÈë
+          D = -1;
+          Clean(RowStart[2]);
+          Clean(RowStart[3]);
+          passwdE = 0;
+          KeyValue = 0;
+        }
+        if( D < 6 )
+        {
+          D++ ;
+          lcm_write_str(RowStart[2],xxx,2*D);
+          passwdE=passwdE*10+KeyValue;
+          //lcm_write_long(RowStart[3],passwdE);
+        }
       }
-
-      else if(KeyValue==13)
-       {
-       Clean( RowStart[1] + 3 );
-       w=0;
-       Price=0;
-       x=1;
-       zhengshu=1;
-         }
-
-
-        else if(KeyValue==14)
-  {
-    P2IE  = 0x00;
-    P1IE |= BIT0 + BIT1 ;
-    Clean( RowStart[2] + 3 );
-    Clean( RowStart[3] + 3 );
-    return;
-  }
-       else if(KeyValue==11)
-         Price_F=Price_F;
-
-      else if(zhengshu)
-      { Price=10*Price+KeyValue;
-        Price_F=Price;
-        lcm_write_double(RowStart[1] + 3,(double)Price);
-      w++;
-      }
-       else if(zhengshu==0)
-      { Xiaoshu=KeyValue;
-      {
-        for(int j=0;j<x;j++)
-
-         Xiaoshu/=10;}
-        Price_F+=Xiaoshu;
-      lcm_write_double(RowStart[1] + 3,Price_F);
-      x++;
-      }
-
     }
-    }*/
-  
   }
-  }
-  KeyValue = 11 ;
+  KeyValue = 0 ;
 
   P2DIR = 0x0F;
   P2REN = 0xF0;

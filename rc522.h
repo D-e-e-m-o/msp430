@@ -114,7 +114,7 @@
 #define 	MI_ERR                0x02
 
 /*
-sbit  spi_cs=P8^4;
+sbit  spi_da=P8^4;
 sbit  spi_ck=P8^3;
 sbit  spi_mosi=P8^2;
 sbit  spi_miso=P8^1;
@@ -147,5 +147,6 @@ char PcdWrite(unsigned char addr,unsigned char *pData);
 char PcdRead(unsigned char addr,unsigned char *pData);
 char PcdHalt(void);
 void init_rc522(void);
+void test(void);
 
 #endif

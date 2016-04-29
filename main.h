@@ -1,3 +1,2 @@
 #define uint  unsigned int
 #define uchar unsigned char
-const uchar passWd[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
